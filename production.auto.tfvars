@@ -21,13 +21,4 @@ vms = {
       "Owner"        = "DataScience-Team"
   	}
       }
-
-  "0003" = {
-      flavor = "bronze"
-      tags = {
-      "Environment"  = "test"
-      "BackupPolicy" = "Bronze-Daily"
-      "Owner"        = "Test-Team"
-            }
-          }
 }

@@ -4,24 +4,41 @@
   become: yes
 
   tasks:
+    # 1. The "Anti-Freeze" Lock Check
+    # This prevents Ansible from getting stuck if Ubuntu is running background updates
+    - name: Wait for any background apt processes to finish
+      ansible.builtin.shell: |
+        while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 5; done;
+        while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 5; done;
+      changed_when: false
+
+    # 2. The Headless Installation
     - name: Ensure Docker Engine is installed
       ansible.builtin.apt:
         name: docker.io
         state: present
         update_cache: yes
+        # Force default answers for any hidden config prompts
+        dpkg_options: 'force-confold,force-confdef'
+      # Strictly enforce that no UI dialogs are allowed to open
+      environment:
+        DEBIAN_FRONTEND: noninteractive
 
+    # 3. Service Management
     - name: Ensure Docker service is running and enabled
       ansible.builtin.service:
         name: docker
         state: started
         enabled: yes
 
+    # 4. User Permissions
     - name: Add ubuntu user to docker group
       ansible.builtin.user:
         name: ubuntu
         groups: docker
         append: yes
 
+    # 5. Socket Permissions
     - name: Force Docker socket permissions
       ansible.builtin.file:
         path: /var/run/docker.sock
