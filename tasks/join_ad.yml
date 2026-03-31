@@ -1,0 +1,48 @@
+---
+- name: Phase 4 - Active Directory Integration
+  hosts: web_nodes
+  become: yes
+  vars:
+    # These will be passed from Jenkins
+    domain_name: "{{ ad_domain }}"
+    join_user: "{{ ad_user }}"
+    join_pass: "{{ ad_password }}"
+
+  tasks:
+    - name: Install required AD integration packages
+      ansible.builtin.apt:
+        name:
+          - realmd
+          - sssd
+          - sssd-tools
+          - adcli
+          - samba-common-bin
+          - oddjob
+          - oddjob-mkhomedir
+          - packagekit
+        state: present
+        update_cache: yes
+
+    - name: Check if the machine is already joined to the domain
+      ansible.builtin.shell: /usr/sbin/realm list | grep -q "{{ domain_name }}"
+      register: ad_status
+      failed_when: false
+      changed_when: false
+
+    - name: Join the Active Directory domain
+      ansible.builtin.shell: |
+        echo '{{ join_pass }}' | /usr/sbin/realm join -U '{{ join_user }}' {{ domain_name }}
+      when: ad_status.rc != 0
+      no_log: true # SECURITY: This hides the password from the Jenkins console logs!
+
+    - name: Automatically create home directories for AD users on first login
+      ansible.builtin.command: /usr/sbin/pam-auth-update --enable mkhomedir
+      when: ad_status.rc != 0
+
+    - name: Grant 'Domain Admins' group sudo privileges
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/domain_admins"
+        # Enterprise standard: AD groups need the domain attached, spaces get escaped
+        content: '"%domain admins@{{ domain_name }}" ALL=(ALL:ALL) NOPASSWD:ALL'
+        mode: '0440'
+        validate: /usr/sbin/visudo -cf %s

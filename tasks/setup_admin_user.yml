@@ -1,0 +1,27 @@
+---
+- name: Configure local admin user
+  hosts: nodes
+  become: yes
+
+  tasks:
+    - name: Ensure the local admin group exists
+      ansible.builtin.group:
+        name: "{{ admin_user }}"
+        state: present
+
+    - name: Create the local admin user
+      ansible.builtin.user:
+        name: "{{ admin_user }}"
+        password: "{{ admin_password | password_hash('sha512') }}"
+        group: "{{ admin_user }}"
+        groups: sudo
+        append: yes
+        shell: /bin/bash
+        state: present
+
+    - name: Allow local admin to use sudo without password (Enterprise policy)
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ admin_user }}"
+        content: "{{ admin_user }} ALL=(ALL) NOPASSWD:ALL"
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s

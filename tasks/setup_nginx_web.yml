@@ -1,0 +1,57 @@
+---
+- name: Nginx Setup
+  hosts: nodes
+  become: yes
+
+  tasks:
+    - name: Ensure web and config directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /opt/web-app/html
+        - /opt/web-app/conf
+
+    - name: Create custom Nginx configuration file
+      ansible.builtin.copy:
+        dest: /opt/web-app/conf/default.conf
+        mode: '0644'
+        content: |
+          server {
+              listen 80 default_server;
+              server_name _;
+              location / {
+                  root /usr/share/nginx/html;
+                  index index.html;
+              }
+          }
+
+    - name: Deploy dynamic landing page
+      ansible.builtin.template:
+        src: index.html.j2
+        dest: /opt/web-app/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy Nginx Docker image archive to VM
+      ansible.builtin.copy:
+        src: /opt/test_multipass/nginx-latest.tar
+        dest: /tmp/nginx-latest.tar
+        mode: '0644'
+
+    - name: Load Nginx image into local Docker registry
+      ansible.builtin.command: docker load -i /tmp/nginx-latest.tar
+
+    - name: Start Nginx Container
+      community.docker.docker_container:
+        name: my_web_server
+        image: nginx:latest
+        state: started
+        recreate: yes
+        ports:
+          - "80:80"
+        volumes:
+          - "/opt/web-app/html:/usr/share/nginx/html:ro"
+          - "/opt/web-app/conf/default.conf:/etc/nginx/conf.d/default.conf:ro"

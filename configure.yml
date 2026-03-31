@@ -1,0 +1,38 @@
+---
+- name: Enterprise Node Configuration
+  hosts: all
+  become: yes  # Runs as root to create users and folders
+
+  vars:
+    # Fallback variables in case none are provided
+    project_code: "default-app"
+    env_name: "dy" 
+    local_acc: "svc-{{ project_code }}-{{ env_name }}"
+    base_dir: "/opt/projects/{{ project_code }}/{{ env_name }}"
+
+  tasks:
+    - name: Ensure the local service account exists
+      user:
+        name: "{{ local_acc }}"
+        state: present
+        create_home: yes
+        shell: /bin/bash
+
+    - name: Create the project directory structure
+      file:
+        path: "{{ base_dir }}"
+        state: directory
+        owner: "{{ local_acc }}"
+        group: "{{ local_acc }}"
+        mode: '0755'
+
+    - name: Generate an environment config file
+      copy:
+        dest: "{{ base_dir }}/.env"
+        content:
+          ENVIRONMENT={{ env_name }}
+          PROJECT_CODE={{ project_code }}
+          SERVICE_ACCOUNT={{ local_acc }}
+        owner: "{{ local_acc }}"
+        mode: '0600'
+

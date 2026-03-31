@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+tfplan
+#production.auto.tfvars
+
+# Ansible & SSH
+inventory.ini
+*.pem
+*.key
+
+# Docker/Binaries
+*.tar
+nginx-latest.tar
+images/

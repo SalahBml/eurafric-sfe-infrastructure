@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Nginx Status</title>
+  </head>
+
+  <body style="margin:0; font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f8;">
+
+    <div style="max-width:700px; margin:60px auto; background:#ffffff; padding:40px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center;">
+
+      <h1 style="color:#2c3e50; margin-bottom:10px;">
+        Nginx Service Running
+      </h1>
+
+      <p style="font-size:18px; color:#555;">
+        Hostname: <strong>{{ ansible_hostname }}</strong>
+      </p>
+	
+      <p style="font-size:18px; color:#555;">
+        Node Internal IP: <strong>{{ ansible_default_ipv4.address }}</strong>
+      </p>
+
+      <hr style="margin:30px 0; border:none; border-top:1px solid #eee;">
+
+      <p style="font-size:14px; color:#888;">
+        This page confirms that the Nginx web server is successfully deployed and operational.
+      </p>
+
+    </div>
+
+  </body>
+</html>
