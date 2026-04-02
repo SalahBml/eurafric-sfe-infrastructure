@@ -5,7 +5,7 @@ os_image     = "file://C:/ubuntu/ubuntu-24.04-server-cloudimg-amd64.img"
 
 vms = {
   "0000" = { 
-      flavor = "bronze"
+      flavor = "silver"
       tags = {
       "Environment"  = "Dev"
       "BackupPolicy" = "Bronze-Daily"
