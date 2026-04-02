@@ -40,7 +40,13 @@ pipeline {
                 }
             }
         }
-        
+
+        stage('Infrastructure: Apply') {
+            steps {
+                sh "terraform apply tfplan"
+            }
+        }        
+
         stage('Infrastructure: Discovery') {
                     steps {
                         dir("${WORKSPACE_DIR}") {
