@@ -45,7 +45,6 @@ pipeline {
 
         stage('Infrastructure: Apply') {
             steps {
-                // FIXED: Must be executed inside the workspace directory targeting the tfplan file
                 dir("${WORKSPACE_DIR}") {
                     sh "terraform apply tfplan"
                 }
