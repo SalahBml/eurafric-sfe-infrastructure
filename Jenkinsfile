@@ -1,3 +1,4 @@
+def provisionedVMs = [:]
 pipeline {
     agent any
 
@@ -65,7 +66,8 @@ pipeline {
                             def ip = sh(script: "multipass.exe info ${vmName} --format csv | grep ${vmName} | cut -d, -f3", returnStdout: true).trim()
                             if (ip) {
                                 sh "echo '${ip} ansible_user=ubuntu'  >> inventory.ini"
-                            }
+				provisionedVMs[vmName] = ip			                          
+  }
                         }
                     }
                 }
@@ -101,6 +103,25 @@ pipeline {
                           -e "admin_password=${params.ADMIN_PASS}"
                     """
                 }
+            }
+        }
+    }
+post {
+        always {
+            script {
+                echo "==================================================="
+                echo " MULTIPASS VM IP ADDRESSES"
+                echo "==================================================="
+                
+                if (provisionedVMs.isEmpty()) {
+                    echo "No IPs were captured."
+                } else {
+                    provisionedVMs.each { name, ipAddr ->
+                        echo " ${name} -> ${ipAddr}"
+                    }
+                }
+                
+                echo "==================================================="
             }
         }
     }
