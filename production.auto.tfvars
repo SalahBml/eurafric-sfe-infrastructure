@@ -15,9 +15,9 @@ vms = {
   "0001" = {
       flavor = "bronze"
       tags = {
-      "Environment"  = "Dev"
+      "Environment"  = "Test"
       "BackupPolicy" = "Bronze-Daily"
-      "Owner"        = "test-Team"
+      "Owner"        = "Test-Team"
           }
         }   
 }
