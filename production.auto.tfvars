@@ -11,4 +11,5 @@ vms = {
       "BackupPolicy" = "Bronze-Daily"
       "Owner"        = "Dev-Team"
 	  }
+  }
 }
