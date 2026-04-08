@@ -16,7 +16,7 @@ pipeline {
         stage('Security: IaC Scan') {
             steps {
                 dir("${WORKSPACE_DIR}") {
-                    sh "tfsec . --soft-fail"
+                    sh "tfsec ."
                 }
             }
         }
