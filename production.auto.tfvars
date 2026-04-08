@@ -11,13 +11,4 @@ vms = {
       "BackupPolicy" = "Bronze-Daily"
       "Owner"        = "Dev-Team"
 	  }
- 	}
-  "0001" = {
-      flavor = "bronze"
-      tags = {
-      "Environment"  = "Test"
-      "BackupPolicy" = "Bronze-Daily"
-      "Owner"        = "Test-Team"
-          }
-        }   
 }
