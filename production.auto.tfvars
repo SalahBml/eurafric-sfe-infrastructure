@@ -12,8 +12,8 @@ vms = {
       "Owner"        = "Dev-Team"
 	  }
   }
+}
 
-vms = {
   "0001" = {
       flavor = "silver"
       tags = {
