@@ -12,7 +12,6 @@ vms = {
       "Owner"        = "Dev-Team"
 	  }
   }
-}
 
   "0001" = {
       flavor = "silver"
