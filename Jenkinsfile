@@ -74,25 +74,25 @@ pipeline {
             }
         }
 
-        stage('Docker install') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh """
-                        ansible-playbook tasks/install_docker.yml
-                    """
-                }
-            }
-        }
+#        stage('Docker install') {
+#            steps {
+#                dir("${WORKSPACE_DIR}") {
+#                    sh """
+#                        ansible-playbook tasks/install_docker.yml
+#                    """
+#                }
+#            }
+#        }
 
-        stage('Nginx config') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh """
-                        ansible-playbook tasks/setup_nginx_web.yml
-                    """
-                }
-            }
-        }
+     #   stage('Nginx config') {
+    #        steps {
+   #             dir("${WORKSPACE_DIR}") {
+  #                  sh """
+ #                       ansible-playbook tasks/setup_nginx_web.yml
+#                    """
+#                }
+#            }
+#        }
         
         stage('User config') {
             steps {
