@@ -11,7 +11,7 @@ pipeline {
         WORKSPACE_DIR = "/opt/test_multipass"
         TF_STATE_ID  = "null-null-null"
     }
-    
+
     stages {
         stage('Security: IaC Scan') {
             steps {
@@ -20,7 +20,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Infrastructure: Provisioning') {
             steps {
                 dir("${WORKSPACE_DIR}") {
@@ -66,34 +66,15 @@ pipeline {
                             def ip = sh(script: "multipass.exe info ${vmName} --format csv | grep ${vmName} | cut -d, -f3", returnStdout: true).trim()
                             if (ip) {
                                 sh "echo '${ip} ansible_user=ubuntu'  >> inventory.ini"
-				provisionedVMs[vmName] = ip			                          
-  }
+                                provisionedVMs[vmName] = ip
+			    }
                         }
                     }
                 }
             }
         }
 
-#        stage('Docker install') {
-#            steps {
-#                dir("${WORKSPACE_DIR}") {
-#                    sh """
-#                        ansible-playbook tasks/install_docker.yml
-#                    """
-#                }
-#            }
-#        }
-
-     #   stage('Nginx config') {
-    #        steps {
-   #             dir("${WORKSPACE_DIR}") {
-  #                  sh """
- #                       ansible-playbook tasks/setup_nginx_web.yml
-#                    """
-#                }
-#            }
-#        }
-        
+       
         stage('User config') {
             steps {
                 dir("${WORKSPACE_DIR}") {
@@ -106,13 +87,14 @@ pipeline {
             }
         }
     }
+
 post {
         always {
             script {
                 echo "==================================================="
                 echo " MULTIPASS VM IP ADDRESSES"
                 echo "==================================================="
-                
+
                 if (provisionedVMs.isEmpty()) {
                     echo "No IPs were captured."
                 } else {
@@ -120,7 +102,7 @@ post {
                         echo " ${name} -> ${ipAddr}"
                     }
                 }
-                
+
                 echo "==================================================="
             }
         }
