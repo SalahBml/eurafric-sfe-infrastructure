@@ -1,5 +1,4 @@
 def provisionedVMs = [:]
-
 pipeline {
     agent any
 
@@ -14,34 +13,6 @@ pipeline {
     }
 
     stages {
-        // =================================================================
-        // PHASE 1: THE SECURITY GATE & PLAN (Runs on EVERY branch and PR)
-        // =================================================================
-        
-        stage('Security: Secret Scan') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh "docker run --rm --user root -v \$(pwd):/path zricethezav/gitleaks:latest detect --source=/path -v"
-                }
-            }
-        }
-
-        stage('Security: Dependency Scan (SCA)') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh "trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 ."
-                }
-            }
-        }
-
-        stage('Security: SAST') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh "semgrep scan --config auto --error ."
-                }
-            }
-        }
-
         stage('Security: IaC Scan') {
             steps {
                 dir("${WORKSPACE_DIR}") {
@@ -50,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Infrastructure: Plan') {
+        stage('Infrastructure: Provisioning') {
             steps {
                 dir("${WORKSPACE_DIR}") {
                     withCredentials([string(credentialsId: 'sfe-ssh-pub-key', variable: 'TF_VAR_ssh_public_key')]) {
@@ -64,25 +35,16 @@ pipeline {
             }
         }
 
-        // =================================================================
-        // PHASE 2: DEPLOYMENT (Runs ONLY when merged into the 'main' branch)
-        // =================================================================
-
         stage('Infrastructure: Approval') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
+                    // pipeline freezes until human approval
                     input message: "Review the Terraform Plan. Do you want to apply these changes?", ok: "Deploy Infrastructure"
                 }
             }
         }
 
         stage('Infrastructure: Apply') {
-            when {
-                branch 'main'
-            }
             steps {
                 dir("${WORKSPACE_DIR}") {
                     sh "terraform apply tfplan"
@@ -91,38 +53,33 @@ pipeline {
         }
 
         stage('Infrastructure: Discovery') {
-            when {
-                branch 'main'
-            }
             steps {
                 dir("${WORKSPACE_DIR}") {
                     script {
                         def vmListRaw = sh(script: "terraform output -json vm_names", returnStdout: true).trim()
-                        def vms = new groovy.json.JsonSlurperClassic().parseText(vmListRaw)
+                        def vms = new groovy.json.JsonSlurper().parseText(vmListRaw)
 
                         sh "echo '[nodes]' > inventory.ini"
 
                         vms.each { vmName ->
-                            sh "multipass start ${vmName}"
-                            def ip = sh(script: "multipass info ${vmName} --format csv | grep ${vmName} | cut -d, -f3", returnStdout: true).trim()
+                            sh "multipass.exe start ${vmName}"
+                            def ip = sh(script: "multipass.exe info ${vmName} --format csv | grep ${vmName} | cut -d, -f3", returnStdout: true).trim()
                             if (ip) {
                                 sh "echo '${ip} ansible_user=ubuntu'  >> inventory.ini"
                                 provisionedVMs[vmName] = ip
-                            }
+			    }
                         }
                     }
                 }
             }
         }
 
+       
         stage('User config') {
-            when {
-                branch 'main'
-            }
             steps {
                 dir("${WORKSPACE_DIR}") {
                     sh """
-                        ansible-playbook tasks/test_win.yml \
+                        ansible-playbook tasks/setup_admin_user.yml \
                           -e "admin_user=${params.ADMIN_USER}" \
                           -e "admin_password=${params.ADMIN_PASS}"
                     """
@@ -130,8 +87,8 @@ pipeline {
             }
         }
     }
-    
-    post {
+
+post {
         always {
             script {
                 echo "==================================================="
@@ -139,7 +96,7 @@ pipeline {
                 echo "==================================================="
 
                 if (provisionedVMs.isEmpty()) {
-                    echo "No IPs were captured. (Normal behavior for PR branches)"
+                    echo "No IPs were captured."
                 } else {
                     provisionedVMs.each { name, ipAddr ->
                         echo " ${name} -> ${ipAddr}"

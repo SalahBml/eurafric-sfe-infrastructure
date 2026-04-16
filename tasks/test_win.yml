@@ -1,0 +1,16 @@
+---
+- name: Configure Windows Servers
+  hosts: nodes
+  # 'become' is generally not needed here if your WinRM connection user is already an Administrator
+  tasks:
+    - name: Create local admin user on Windows
+      win_user:
+        name: "{{ admin_user }}"
+        password: "{{ admin_password }}"
+        state: present
+        # Add them to the local Administrators group
+        groups:
+          - Administrators
+        # Prevents the new user from being forced to change the password on first login
+        password_never_expires: yes
+        user_cannot_change_password: no
