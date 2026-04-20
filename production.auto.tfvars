@@ -1,4 +1,3 @@
-# aya
 tenant_name  = "boa"
 env_name     = "by"
 project_code = "web"

@@ -1,4 +1,3 @@
-#gg
 def provisionedVMs = [:]
 
 pipeline {
