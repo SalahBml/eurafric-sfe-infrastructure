@@ -14,12 +14,9 @@ pipeline {
     }
 
     stages {
-        // =================================================================
-        // PHASE 1: THE SECURITY GATE & PLAN (Runs on EVERY branch and PR)
-        // =================================================================
-        /*
-        stage('Security: Secret Scan') {
-            steps {
+	stage('Security: Secret Scan') {
+        
+/*    steps {
                 dir("${WORKSPACE_DIR}") {
                     sh "docker run --rm --user root -v \$(pwd):/path zricethezav/gitleaks:latest detect --source=/path -v"
                 }
@@ -64,11 +61,7 @@ pipeline {
             }
         }
 
-        // =================================================================
-        // PHASE 2: DEPLOYMENT (Runs ONLY when merged into the 'main' branch)
-        // =================================================================
-
-        stage('Infrastructure: Approval') {
+	stage('Infrastructure: Approval') {
             when {
                 branch 'main'
             }
@@ -122,7 +115,7 @@ pipeline {
             steps {
                 dir("${WORKSPACE_DIR}") {
                     sh """
-                        ansible-playbook tasks/test_win.yml \
+                        ansible-playbook tasks/setup_admin_user.yml \
                           -e "admin_user=${params.ADMIN_USER}" \
                           -e "admin_password=${params.ADMIN_PASS}"
                     """
