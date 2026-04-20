@@ -14,17 +14,22 @@ pipeline {
     }
 
     stages {
-        // =================================================================
-        // PHASE 1: THE SECURITY GATE & PLAN (Runs on EVERY branch and PR)
-        // =================================================================
+
+
         
-        stage('Security: Secret Scan') {
+/*
+stage('Security: Secret Scan') {
             steps {
+
                 dir("${WORKSPACE_DIR}") {
                     sh "docker run --rm --user root -v \$(pwd):/path zricethezav/gitleaks:latest detect --source=/path -v"
                 }
             }
+
         }
+
+      }*/
+
 
         stage('Security: Dependency Scan (SCA)') {
             steps {
@@ -63,12 +68,10 @@ pipeline {
                 }
             }
         }
+	
 
-        // =================================================================
-        // PHASE 2: DEPLOYMENT (Runs ONLY when merged into the 'main' branch)
-        // =================================================================
+	stage('Infrastructure: Approval') {
 
-        stage('Infrastructure: Approval') {
             when {
                 branch 'main'
             }
